@@ -7,7 +7,7 @@ from G4Kernel import treatPropertyValue
 
 class CrossTalk( Logger ):
 
-  __allow_keys = ["MinEnergy",
+  __allow_keys = ["SigmaNoiseCut",
                   "CollectionKeys",
                   "XTCellsKey",
                   "CellsKey",

@@ -1,6 +1,7 @@
 
 #include "src/CaloCellMaker.h"
 #include "src/CaloCellMerge.h"
+#include "src/CalibrationTool.h"
 #include "src/PulseGenerator.h"
 #include "src/OptimalFilter.h"
 #include "src/CrossTalk.h"
@@ -24,4 +25,5 @@
 #pragma link C++ class CaloHitMerge+;
 #pragma link C++ class ConstrainedOptimalFilter++;
 #pragma link C++ class PileupMerge+;
+#pragma link C++ class CalibrationTool+;
 #endif

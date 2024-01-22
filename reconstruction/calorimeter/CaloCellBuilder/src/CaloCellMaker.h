@@ -36,6 +36,7 @@ class CaloCellMaker : public Gaugi::Algorithm
     void push_back( Gaugi::AlgTool *);
     /*! Set pulse generator */
     void setPulseGenerator(Gaugi::AlgTool *);
+    void setCalibration(Gaugi::AlgTool *);
 
   private:
    
@@ -52,6 +53,9 @@ class CaloCellMaker : public Gaugi::Algorithm
     std::string m_histPath;
     /*! Sampling id for this reconstruction */
     int m_sampling;
+    float m_noise;
+    std::vector<float> m_ofweightsEnergy;
+    std::vector<float> m_ofweightsTime;
     /*! Segment index for this sample calorimeter */
     int m_segment;
     /*! Detector id for this sampling*/
@@ -68,7 +72,9 @@ class CaloCellMaker : public Gaugi::Algorithm
     std::vector<float> m_etaBins; 
     std::vector<float> m_phiBins; 
     float m_zMin;
-    float m_zMax; 
+    float m_zMax;
+    float m_Rmin;
+    float m_Rmax;
     
 
     bool m_detailedHistograms;
@@ -78,6 +84,8 @@ class CaloCellMaker : public Gaugi::Algorithm
 
     /*! Pulse generator */
     Gaugi::AlgTool *m_pulseGenerator;
+    /*! Cell calibration (for now, just time of flight) */
+    Gaugi::AlgTool *m_calibration;
     /*! The tool list that will be executed into the post execute step */
     std::vector< Gaugi::AlgTool* > m_toolHandles;
 

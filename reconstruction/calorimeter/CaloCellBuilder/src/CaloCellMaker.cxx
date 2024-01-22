@@ -1,5 +1,6 @@
 
 #include "G4Kernel/CaloPhiRange.h"
+// #include "CaloCell/CaloCalibHelper.h"
 #include "CaloCell/CaloDetDescriptor.h"
 #include "CaloCell/CaloDetDescriptorCollection.h"
 #include "CaloHit/CaloHitContainer.h"
@@ -31,7 +32,12 @@ CaloCellMaker::CaloCellMaker( std::string name ) :
   declareProperty( "PhiBins"                  , m_phiBins                             );
   declareProperty( "ZMin"                     , m_zMin                                );
   declareProperty( "ZMax"                     , m_zMax                                );
+  declareProperty( "RMin"                     , m_Rmin                                ); // mm
+  declareProperty( "RMax"                     , m_Rmax                                ); // mm
   declareProperty( "Sampling"                 , m_sampling                            );
+  declareProperty( "Noise"                    , m_noise=0                             );
+  declareProperty( "OFCa"                     , m_ofweightsEnergy={}                  );
+  declareProperty( "OFCb"                     , m_ofweightsTime={}                    );
   declareProperty( "Segment"                  , m_segment                             );
   declareProperty( "Detector"                 , m_detector                            );
   declareProperty( "BunchIdStart"             , m_bcid_start=-7                       );
@@ -56,6 +62,11 @@ void CaloCellMaker::setPulseGenerator(Gaugi::AlgTool* tool)
   m_pulseGenerator=tool;
 }
 
+void CaloCellMaker::setCalibration( Gaugi::AlgTool* tool)
+{
+  m_calibration=tool;
+}
+
 
 //!=====================================================================
 
@@ -65,6 +76,9 @@ StatusCode CaloCellMaker::initialize()
   if (m_pulseGenerator->initialize().isFailure()) {
       MSG_FATAL( "It's not possible to iniatialize Pulse Generator tool." );
   }
+  // if (m_calibration->initialize().isFailure()){
+  //   MSG_WARNING( "Calibration tool was not initialized!" );
+  // }
   m_nEtaBins = m_etaBins.size() - 1;
   m_nPhiBins = m_phiBins.size() - 1;
 
@@ -158,6 +172,13 @@ StatusCode CaloCellMaker::pre_execute( EventContext &ctx ) const
                                                       (Detector)m_detector,
                                                       m_bc_duration, m_bcid_start, m_bcid_end );
 
+      // Create the calorimeter Calibration/Geometry helper, attached to a cell_descriptor
+      // obs.: only at LAR detector, for now.
+      if ( (descriptor->sampling() == CaloSampling::PSB) || (descriptor->sampling() == CaloSampling::EMB1) || (descriptor->sampling() == CaloSampling::EMB2) || (descriptor->sampling() == CaloSampling::EMB3)){
+        auto *calibHelper = new xAOD::CaloCalibHelper(  m_Rmin, m_Rmax, etaCenter);
+        descriptor->setCalibHelper( calibHelper );
+      }
+
       if ( !collection->insert( descriptor->hash(), descriptor ) ){
         MSG_FATAL( "It is not possible to include cell hash ("<< descriptor->hash() << ") into the collection. hash already exist.");
       }
@@ -229,12 +250,30 @@ StatusCode CaloCellMaker::post_execute( EventContext &ctx ) const
         MSG_FATAL( "Descriptor hash code is different than hit hash code. Abort!");
       }
 
+
+      // * Calibration constants * 
+      // To be moved to its own tool, that holds specific class (mateus)
+      descriptor->setNoise(m_noise);
+      descriptor->setOFCa(m_ofweightsEnergy);
+      descriptor->setOFCb(m_ofweightsTime);
+
+
       for ( int bcid = hit->bcid_start();  bcid <= hit->bcid_end(); ++bcid )
       {
         // transfer truth energy for each bunch crossing to descriptor
         descriptor->edep( bcid, hit->edep(bcid) ); 
         descriptor->tof ( bcid, hit->tof(bcid)  );
       }  
+
+      // TOF calibration happens here, before digitalization|PulseGenerator
+      // obs.: only at LAR, for now.
+      if ( (descriptor->sampling() == CaloSampling::PSB) || (descriptor->sampling() == CaloSampling::EMB1) || (descriptor->sampling() == CaloSampling::EMB2) || (descriptor->sampling() == CaloSampling::EMB3)){
+        if( m_calibration->execute(ctx, descriptor).isFailure() ){
+          MSG_ERROR( "It's not possible to execute Calibration Tool.");
+          return StatusCode::FAILURE;
+        }
+      }
+
 
       if( m_pulseGenerator->execute(ctx, descriptor).isFailure() ){
           MSG_ERROR( "It's not possible to execute Pulse generator." );

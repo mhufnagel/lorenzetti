@@ -17,7 +17,7 @@ bool CaloDetDescriptorConverter::convert( const CaloDetDescriptor *descriptor, C
     descriptor_t.deta        = descriptor->deltaEta(); 
     descriptor_t.dphi        = descriptor->deltaPhi();
     descriptor_t.e           = descriptor->e();
-    descriptor_t.tau         = descriptor->tau(); // estimated time of flight  
+    descriptor_t.tau         = descriptor->tau(); // estimated time of flight  (with respect to distance and collision clock)
     descriptor_t.edep        = descriptor->edep(); // truth energy into the bunch crossing zero
     descriptor_t.tof         = descriptor->tof(); // 'truth' time of flight in the cell at BC=0  
     descriptor_t.bcid_start  = descriptor->bcid_start();

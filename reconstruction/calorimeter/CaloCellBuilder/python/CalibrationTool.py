@@ -1,4 +1,4 @@
-__all__ = ["OptimalFilter"]
+__all__ = ["CalibrationTool"]
 
 
 from GaugiKernel import Logger
@@ -6,7 +6,7 @@ from GaugiKernel.macros import *
 from G4Kernel import treatPropertyValue
 
 
-class OptimalFilter(Logger):
+class CalibrationTool(Logger):
 
   __allow_keys = ["OutputLevel",
                   # "WeightsEnergy",
@@ -19,8 +19,8 @@ class OptimalFilter(Logger):
     Logger.__init__(self)
     import ROOT
     ROOT.gSystem.Load('liblorenzetti')
-    from ROOT import RunManager, OptimalFilter
-    self.__core = OptimalFilter(name)
+    from ROOT import RunManager, CalibrationTool
+    self.__core = CalibrationTool(name)
     for key, value in kw.items():
       self.setProperty( key, value )
 

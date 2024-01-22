@@ -2,6 +2,7 @@
 #define CaloDetDescriptor_h
 
 #include "CaloCell/enumeration.h"
+#include "CaloCell/CaloCalibHelper.h"
 #include "GaugiKernel/EDM.h"
 #include "GaugiKernel/macros.h"
 #include "G4Step.hh"
@@ -32,7 +33,10 @@ namespace xAOD{
       /** Destructor **/
       ~CaloDetDescriptor()=default;
       
-
+      /*! Get the calibration helper associated to this descriptor/cell */
+      const xAOD::CaloCalibHelper* calibHelper() const;
+      /*! Set the calibration helper associated to this descriptor/cell */
+      void setCalibHelper( const xAOD::CaloCalibHelper* calib_helper);
 
       /*
        * Cell identification
@@ -50,6 +54,12 @@ namespace xAOD{
       PRIMITIVE_SETTER_AND_GETTER( unsigned long int, m_hash, setHash, hash );
       /*! Cell sampling id */
       PRIMITIVE_SETTER_AND_GETTER( CaloSampling  , m_sampling , setSampling   , sampling  );
+      /*! Cell sampling noise */
+      PRIMITIVE_SETTER_AND_GETTER( float  , m_noise , setNoise   , noise  );
+      /*! Cell sampling OFCa */
+      PRIMITIVE_SETTER_AND_GETTER( std::vector<float>  , m_ofca , setOFCa   , OFCa  );
+      /*! Cell sampling OFCb */
+      PRIMITIVE_SETTER_AND_GETTER( std::vector<float>  , m_ofcb , setOFCb   , OFCb  );
       /*! Cell layer id */
       PRIMITIVE_SETTER_AND_GETTER( Detector  , m_detector  , setDetector    , detector   );
      
@@ -130,6 +140,15 @@ namespace xAOD{
         m_pulsePerBunch[bc_id] = pulse;
       };
 
+      /* add a time of flight delay, based on cell position */
+      void setTofDelay( float tof_delay, int bc_id=0){
+        m_tof[bc_id] -= tof_delay;
+        m_isTofCalib  = true;
+      }
+      bool isTofCalibrated(){
+        return m_isTofCalib;
+      }
+
 
 
     private:
@@ -138,6 +157,9 @@ namespace xAOD{
 
       /*! id sample */
       CaloSampling m_sampling;
+      float m_noise;
+      std::vector<float> m_ofca;
+      std::vector<float> m_ofcb;
       /*! id layer */
       Detector m_detector;
 
@@ -174,12 +196,16 @@ namespace xAOD{
       std::map< int, float> m_edep;
       /*! time of flight of a hit in the cell between bcid_start and bcid_end */
       std::map< int, float> m_tof;
+      bool  m_isTofCalib=false;
       /*! Digitalized pulse for each bunch between bcid_start and bcid_end */
       std::map< int, std::vector<float> > m_pulsePerBunch;
 
 
       /*! Access information unique ID number */
       unsigned long int m_hash;
+
+      /*! Calibration helper*/
+      const xAOD::CaloCalibHelper* m_calibHelper;
 
   };
 

@@ -37,7 +37,7 @@ namespace xAOD{
             CaloDetDescriptorConverter()=default;
             ~CaloDetDescriptorConverter()=default;
 
-             convert a class object into a struct
+            // convert a class object into a struct
             bool convert(const CaloDetDescriptor *, CaloDetDescriptor_t &, int link );
 
             bool convert( const CaloDetDescriptor_t &, CaloDetDescriptor *& );

@@ -56,10 +56,8 @@ outputLevel = LoggingLevel.fromstring(args.outputLevel)
 
 try:
 
-
   from GaugiKernel import ComponentAccumulator
   acc = ComponentAccumulator("ComponentAccumulator", args.outputFile)
-
   # the reader must be first in sequence
   from RootStreamBuilder import RootStreamHITReader, recordable
   reader = RootStreamHITReader("HITReader", 
@@ -71,13 +69,11 @@ try:
                                 NtupleName      = "CollectionTree",
                                 OutputLevel     = outputLevel,
                               )
-
   reader.merge(acc)
   
   # digitalization!
   from CaloCellBuilder import CaloCellBuilder
   from ATLAS import ATLASConstruction as ATLAS
-
   calorimeter = CaloCellBuilder("CaloCellBuilder", ATLAS(),
                                 HistogramPath   = "Expert/Cells",
                                 OutputLevel     = outputLevel,

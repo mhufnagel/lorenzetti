@@ -9,6 +9,10 @@ from . import PulseGenerator
 __all__.extend(PulseGenerator.__all__)
 from .PulseGenerator import *
 
+from . import CalibrationTool
+__all__.extend(CalibrationTool.__all__)
+from .CalibrationTool import *
+
 from . import CrossTalk
 __all__.extend(CrossTalk.__all__)
 from .CrossTalk import *

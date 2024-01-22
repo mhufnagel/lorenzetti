@@ -8,8 +8,9 @@ OptimalFilter::OptimalFilter( std::string name ) :
   IMsgService(name),
   AlgTool()
 {
-  declareProperty( "WeightsEnergy"    , m_ofweightsEnergy={}  );
-  declareProperty( "WeightsTime"      , m_ofweightsTime={}    );
+  // declareProperty( "WeightsEnergy"    , m_ofweightsEnergy={}  );
+  // declareProperty( "WeightsTime"      , m_ofweightsTime={}    );
+  // declareProperty( "NoiseStd"         , m_noiseStd=0.0        );
   declareProperty( "OutputLevel"      , m_outputLevel=1       );
 }
 
@@ -42,28 +43,37 @@ StatusCode OptimalFilter::execute( SG::EventContext &/*ctx*/, Gaugi::EDM *edm ) 
   auto pulse = cell->pulse();
   float energy=0.0;
   float tau=0.0, EneTau=0.0;
+  auto ofweightsEnergy=cell->OFCa();
+  auto ofweightsTime=cell->OFCb();
+  float noise=cell->noise();
 
   // Energy estimation
-  if( m_ofweightsEnergy.size() != pulse.size() ){
+  if( ofweightsEnergy.size() != pulse.size() ){
     MSG_ERROR( "The ofweightsEnergy size its different than the pulse size." );
     return StatusCode::FAILURE;
   }else{
     for( unsigned sample=0; sample < pulse.size(); ++sample) 
-      energy += pulse[sample]*m_ofweightsEnergy[sample];
+      energy += pulse[sample]*ofweightsEnergy[sample];
   }
 
   // Time estimation
-  if( m_ofweightsTime.size() != pulse.size() ){
+  if( ofweightsTime.size() != pulse.size() ){
     MSG_ERROR( "The ofweightsTime size its different than the pulse size." );
     return StatusCode::FAILURE;
   }
   else{
     for( unsigned sample=0; sample < pulse.size(); ++sample){
-      EneTau += pulse[sample]*m_ofweightsTime[sample];
+      EneTau += pulse[sample]*ofweightsTime[sample];
     }
-    tau = EneTau/energy;
+    if (energy > 2*noise){
+      tau = EneTau/energy;
+    }
+    else{
+      tau = 0.0;
+    }
+    MSG_DEBUG(" Cell hash: "<< cell->hash()<<", sampling(noise): "<< cell->sampling()<<"("<< noise<<"), Energy(truth): "<< cell->edep() <<", Energy(OF2): " << energy <<", time(Truth): "<< cell->tof() << ", EneTau: "<< EneTau <<"time(OF): "<< tau );
   }
-
+  
   cell->setE(energy);
   cell->setTau(tau);
   return StatusCode::SUCCESS;

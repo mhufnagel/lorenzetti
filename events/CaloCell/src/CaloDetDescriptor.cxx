@@ -42,3 +42,14 @@ CaloDetDescriptor::CaloDetDescriptor(
   }
 }
 
+/* Calibration Helper associated to descriptor*/
+
+const xAOD::CaloCalibHelper* CaloDetDescriptor::calibHelper() const{
+  
+  return m_calibHelper;
+}
+
+void CaloDetDescriptor::setCalibHelper( const xAOD::CaloCalibHelper* calib_helper){
+
+  m_calibHelper = calib_helper;
+}

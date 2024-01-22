@@ -19,7 +19,12 @@ class CaloCellMaker( Logger ):
                     "PhiBins"           ,
                     "ZMin"              ,
                     "ZMax"              ,
+                    "RMin"              ,
+                    "RMax"              ,
                     "Sampling"          ,
+                    "Noise"             ,
+                    "OFCa"              ,
+                    "OFCb"              ,
                     "Segment"           ,
                     "Detector"          ,
                     "BunchIdStart"      ,
@@ -39,6 +44,7 @@ class CaloCellMaker( Logger ):
     self.__core = core(name)
     self.Tools = []
     self.PulseGenerator = None
+    self.Calibration = None
     for key, value in kw.items():
       self.setProperty( key, value )
 
@@ -48,6 +54,7 @@ class CaloCellMaker( Logger ):
     for tool in self.Tools:
       self.__core.push_back(tool.core())
     self.__core.setPulseGenerator(self.PulseGenerator.core())
+    self.__core.setCalibration(self.Calibration.core())
     return self.__core
 
 

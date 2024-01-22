@@ -1,11 +1,12 @@
 
 __all__ = ["CaloCellBuilder"]
 
-from GaugiKernel        import Logger
-from GaugiKernel.macros import *
-from GaugiKernel        import GeV
-from G4Kernel           import treatPropertyValue
-from RootStreamBuilder  import recordable
+from GaugiKernel            import Logger
+from GaugiKernel.constants  import *
+from GaugiKernel.macros     import *
+from GaugiKernel            import GeV
+from G4Kernel               import treatPropertyValue
+from RootStreamBuilder      import recordable
 import os
 
 
@@ -19,7 +20,7 @@ class CaloCellBuilder( Logger ):
                       HistogramPath        = "Expert", 
                       HitsKey              = "Hits",
                       DoCrosstalk          = False,
-                      OutputLevel          = 1,
+                      OutputLevel          = 2,
                       XTAmpCapacitive      = 4.2,
                       XTAmpInductive       = 2.3,
                       XTAmpResistive       = 1.0,
@@ -45,15 +46,17 @@ class CaloCellBuilder( Logger ):
   def configure(self):
 
     MSG_INFO(self, "Configure CaloCellBuilder.")
-
-    from CaloCellBuilder import CaloCellMaker, CaloCellMerge, PulseGenerator, OptimalFilter, CrossTalk
+    from CaloCellBuilder import CaloCellMaker, CaloCellMerge, PulseGenerator, OptimalFilter, CalibrationTool, CrossTalk
 
     collectionKeys = []
- 
-  
+    
     for samp in self.__detector.samplings:
 
       MSG_INFO(self, "Create new CaloCellMaker and dump all cells into %s collection", samp.CollectionKey)
+      
+      calib = CalibrationTool( "CalibrationTool", 
+                                OutputLevel  = self.OutputLevel)
+      
       pulse = PulseGenerator( "PulseGenerator", 
                               NSamples        = samp.Samples, 
                               ShaperFile      = samp.Shaper,
@@ -65,13 +68,11 @@ class CaloCellBuilder( Logger ):
                               NoiseMean       = 0.0,
                               NoiseStd        = samp.Noise,
                               StartSamplingBC = samp.StartSamplingBC )
-                      
+
       of= OptimalFilter("OptimalFilter",
-                        WeightsEnergy  = samp.OFWeightsEnergy,
-                        WeightsTime    = samp.OFWeightsTime,
                         OutputLevel=self.OutputLevel)
- 
-          
+      
+
       alg = CaloCellMaker("CaloCellMaker_" + samp.CollectionKey, 
                             # input key
                             EventKey                = recordable( "EventInfo" ), 
@@ -83,7 +84,12 @@ class CaloCellBuilder( Logger ):
                             PhiBins                 = samp.sensitive().PhiBins,
                             ZMin                    = samp.volume().ZMin,
                             ZMax                    = samp.volume().ZMax,
+                            RMin                    = samp.volume().RMin,
+                            RMax                    = samp.volume().RMax,
                             Sampling                = samp.Sampling,
+                            Noise                   = samp.Noise,
+                            OFCa                    = samp.OFWeightsEnergy,
+                            OFCb                    = samp.OFWeightsTime,
                             Segment                 = samp.sensitive().Segment,
                             Detector                = samp.Detector,
                             # Bunch crossing configuration
@@ -95,7 +101,8 @@ class CaloCellBuilder( Logger ):
                             OutputLevel             = self.OutputLevel,
                             DetailedHistograms      = False, # Use True when debug with only one thread
                             )
-  
+      
+      alg.Calibration = calib
       alg.PulseGenerator = pulse # for all cell
       alg.Tools = [of] # for each cel
       self.__recoAlgs.append( alg )
@@ -115,8 +122,12 @@ class CaloCellBuilder( Logger ):
 
     if self.__doCrosstalk: 
       MSG_INFO(self, "Create CrossTalk effect into Cell Collection")
+      
+      ofxt = OptimalFilter("OptimalFilter_XT",
+                            OutputLevel    = self.OutputLevel)
+      
       xt = CrossTalk("CrossTalk",
-                            MinEnergy       = 1*GeV,
+                            SigmaNoiseCut   = 2,
                             CollectionKeys  = collectionKeys,
                             XTCellsKey      = recordable("XTCells"),
                             CellsKey        = recordable("Cells"),
@@ -126,7 +137,7 @@ class CaloCellBuilder( Logger ):
                             XTAmpInductive  = self.__XTAmpInductive,
                             XTAmpResistive  = self.__XTAmpResistive,
                             )
-      xt.Tools = [ of]
+      xt.Tools = [ ofxt]
       self.__recoAlgs.append( xt )
 
 

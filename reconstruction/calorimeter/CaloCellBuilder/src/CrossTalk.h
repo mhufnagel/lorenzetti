@@ -51,7 +51,7 @@ class CrossTalk : public Gaugi::Algorithm
     /*! The tool list that will be executed into the post execute step */
     std::vector< Gaugi::AlgTool* > m_toolHandles;
 
-    float m_minEnergy;
+    float m_sigmaNoiseCut;
     // std::string m_collectionKey;
     std::vector<std::string> m_collectionKeys;
     std::string m_cellsKey;

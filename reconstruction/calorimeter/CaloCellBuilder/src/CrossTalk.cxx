@@ -22,7 +22,7 @@ CrossTalk::CrossTalk( std::string name ) :
   Algorithm()
   // AlgTool()
 {
-  declareProperty( "MinEnergy"        , m_minEnergy=1*GeV                              );
+  declareProperty( "SigmaNoiseCut"    , m_sigmaNoiseCut=0                              );
   declareProperty( "CollectionKeys"   , m_collectionKeys={}                            ); // input
   declareProperty( "XTCellsKey"       , m_xtcellsKey="XTCells"                         ); // input
   declareProperty( "CellsKey"         , m_cellsKey="Cells"                             ); // input
@@ -107,16 +107,25 @@ StatusCode CrossTalk::execute( SG::EventContext &ctx , int /*evt*/ ) const
   // SG::ReadHandle<xAOD::CaloCellContainer> xtcontainer (m_xtcellsKey, ctx);
   // std::map < unsigned long int, std::vector<float> > *xtPulse; // map < hash , XT_pulse (Ind+cap) >
 
+  MSG_DEBUG("Before execution: collection.size: "<< container.ptr()->size() << ", xtCollection.size(): "<< xtContainer->size());
 
   // loop over ordinary cell container
   for (const auto cell : **container.ptr() ){
-    xAOD::CaloDetDescriptor *descriptor = const_cast<xAOD::CaloDetDescriptor *>(cell->descriptor());
+    // xAOD::CaloDetDescriptor *xtdescriptor = const_cast<xAOD::CaloDetDescriptor *>(cell->descriptor());
+    auto auxcell = new xAOD::CaloCell();
 
-    auto xtcell = new xAOD::CaloCell();
+    auto xtdescriptor = new xAOD::CaloDetDescriptor( *(cell->descriptor()) ); // get content to a new object pointer, to be "crosstalked"
+    // auxcell->setDescriptor(xtdescriptor);
+    // xAOD::CaloDetDescriptor auxdescriptor = *(cell->descriptor()); // get content to a new object, to be "crosstalked"
+    // xAOD::CaloDetDescriptor* xtdescriptor = (&auxdescriptor); // get content to a new object, to be "crosstalked"
+
+    auto pulseBefore = cell->descriptor()->pulse();//xtdescriptor->pulse();
+    auto energyBefore= cell->descriptor()->e();//xtdescriptor->e();
+    auto timeBefore  = cell->descriptor()->tau();//xtdescriptor->tau();
 
     // Step 1: check if we need to apply cx method for current cell. Only for cells higher than
     // min energy. Here, lets use the truth energy from the main bunch crossing.
-    bool bCrossTalkConditions = ( !(descriptor->edep() < m_minEnergy) && !(descriptor->pulse().size() == 0) && !((descriptor->sampling() != 3) && (descriptor->sampling()  != 12)) );
+    bool bCrossTalkConditions = ( !(xtdescriptor->edep() < m_sigmaNoiseCut*xtdescriptor->noise()) && !(xtdescriptor->pulse().size() == 0) && !((xtdescriptor->sampling() != 3) && (xtdescriptor->sampling()  != 12)) );
 
     
     // if (descriptor->edep() < m_minEnergy) continue;
@@ -129,8 +138,7 @@ StatusCode CrossTalk::execute( SG::EventContext &ctx , int /*evt*/ ) const
     // -------------------------------------------------------------------------------
     if (bCrossTalkConditions){
 
-      MSG_DEBUG("Sampling/Detector "<< descriptor->sampling() <<"/"<< descriptor->detector() <<", hash "<< descriptor->hash() <<", nsamples " << descriptor->pulse().size() << ", truthEne "<< descriptor->edep() << ", ene " << descriptor->e() << ", eta/phi "<< descriptor->eta() << "/"<< descriptor->phi() );
-
+      MSG_DEBUG("bCrossTalkConditions=true: Sampling/Detector "<< xtdescriptor->sampling() <<"/"<< xtdescriptor->detector() <<", hash "<< xtdescriptor->hash() <<", nsamples " << xtdescriptor->pulse().size() << ", truthEne "<< xtdescriptor->edep() << ", ene " << xtdescriptor->e() << ", eta/phi "<< xtdescriptor->eta() << "/"<< xtdescriptor->phi() );
 
       // Step 2: build a 3x3 window around the central cell.
       //    Since this is a cell candidate, lets take all cells around this cells using a 3x3 window.
@@ -143,8 +151,8 @@ StatusCode CrossTalk::execute( SG::EventContext &ctx , int /*evt*/ ) const
         const xAOD::CaloDetDescriptor *neighborDescriptor = neighborCell->descriptor();
 
         if ( neighborDescriptor->pulse().size() == 0) continue; // protection: if there is no pulseShape, skip that cell. 
-        if ( descriptor->sampling() != neighborDescriptor->sampling() ) continue;  // cells_around must belong to the same sampling of central_cell
-        if ( descriptor == neighborDescriptor) continue; // central_cell must not belong to cells_around
+        if ( xtdescriptor->sampling() != neighborDescriptor->sampling() ) continue;  // cells_around must belong to the same sampling of central_cell
+        if ( xtdescriptor->hash() == neighborDescriptor->hash()) continue; // central_cell must not belong to cells_around
         
         // build a 3x3 window around the central cell
         float diffEta = std::abs( cell->eta() - neighborCell->eta() );
@@ -197,10 +205,10 @@ StatusCode CrossTalk::execute( SG::EventContext &ctx , int /*evt*/ ) const
 
 
       // Step 4: add total pulse distortion from neighbor cells into the central cell of the 3x3 window.
-      auto centralCellPulse = descriptor->pulse(); 
+      auto centralCellPulse = xtdescriptor->pulse(); 
 
-      auto pulseBefore = descriptor->pulse();
-      auto energyBefore = descriptor->e();
+      // pulseBefore = xtdescriptor->pulse();
+      // energyBefore = xtdescriptor->e();
 
       for (int i=0; i<5; i++){
         samples_signal.push_back(centralCellPulse[i]); // add to fillHistograms
@@ -209,24 +217,29 @@ StatusCode CrossTalk::execute( SG::EventContext &ctx , int /*evt*/ ) const
       }
 
       // Step 5: change pulse value of central cell of the 3x3 window with adjacent xtalk effects.
-      descriptor->setPulse(centralCellPulse);
-
+      // descriptor->setPulse(centralCellPulse);
+      xtdescriptor->setPulse(centralCellPulse);
+      
       // Step 6: Call for Estimation Methods tool (or any other tool applied into cells, AFTER pulse generation.)
       for ( auto tool : m_toolHandles )
       {
         // digitalization
-        if( tool->execute( ctx, descriptor ).isFailure() ){
+        if( tool->execute( ctx, xtdescriptor ).isFailure() ){
           MSG_ERROR( "It's not possible to execute the tool with name " << tool->name() );
           return StatusCode::FAILURE;
         }
       }
+      // MSG_DEBUG("Cell "<< descriptor->hash() <<", sampling "<< descriptor->sampling() <<", pulse(after_XT) = "<< descriptor->pulse() << ", tof= "<<descriptor->tof() <<", tau=" << descriptor->tau() );
 
-      auto pulseAfter   = centralCellPulse;
-      auto energyAfter  = descriptor->e();
+      auto pulseAfter   = xtdescriptor->pulse();//centralCellPulse;
+      auto energyAfter  = xtdescriptor->e();
+      auto timeAfter    = xtdescriptor->tau();
 
       // fillHistograms( ctx, samples_xtalk_ind, samples_xtalk_cap, samples_signal, samples_signal_xtalk );
-      MSG_DEBUG(" e: "<< energyBefore <<"  Pulse before: " << pulseBefore[0] << "   "<< pulseBefore[1] << "   "<< pulseBefore[2] << "   "<< pulseBefore[3] << "   "<< pulseBefore[4]);
-      MSG_DEBUG(" e_xt: "<< energyAfter <<"  Pulse after: " << pulseAfter[0] << "   "<< pulseAfter[1] << "   "<< pulseAfter[2] << "   "<< pulseAfter[3] << "   "<< pulseAfter[4]);
+      MSG_DEBUG(" e: "<< energyBefore <<" t: "<< timeBefore << "  Pulse before: " << pulseBefore[0] << "   "<< pulseBefore[1] << "   "<< pulseBefore[2] << "   "<< pulseBefore[3] << "   "<< pulseBefore[4]);
+      MSG_DEBUG(" e_xt: "<< energyAfter << " t_xt: "<< timeAfter <<"  Pulse after XT: " << pulseAfter[0] << "   "<< pulseAfter[1] << "   "<< pulseAfter[2] << "   "<< pulseAfter[3] << "   "<< pulseAfter[4]);
+      MSG_DEBUG("Cell "<< cell->descriptor()->hash() <<", sampling "<< cell->descriptor()->sampling() <<", pulse() = "<< cell->descriptor()->pulse() << ", tof= "<<cell->descriptor()->tof() <<", tau=" << cell->descriptor()->tau() );
+      MSG_DEBUG("XTCell "<< xtdescriptor->hash() <<", sampling "<< xtdescriptor->sampling() <<", pulse() = "<< xtdescriptor->pulse() << ", tof= "<<xtdescriptor->tof() <<", tau=" << xtdescriptor->tau() );
 
       samples_xtalk_ind.clear();
       samples_xtalk_cap.clear();
@@ -238,16 +251,19 @@ StatusCode CrossTalk::execute( SG::EventContext &ctx , int /*evt*/ ) const
     // If there is NO xtalk conditions, add the cell normally into new XT Container.
     //  Look, here, the current descriptor hasn't been changed.
     // -------------------------------------------------------------------------------
-    // Setup the caloCell to XT cell container (Copy from original CellContainer)    
-    xtcell->setEta( descriptor->eta() );
-    xtcell->setPhi( descriptor->phi() );
-    xtcell->setDeltaEta( descriptor->deltaEta() );
-    xtcell->setDeltaPhi( descriptor->deltaPhi() );
-    xtcell->setE( descriptor->e() ); // Estimated energy from OF/COF
-    xtcell->setEt( cell->e() / std::cosh( cell->eta() ) );
-    xtcell->setDescriptor( descriptor );
-    xtContainer->push_back( xtcell ); //add CaloCell to XTcontainer
-    
+    // Setup the caloCell to XT cell container (Copy from original CellContainer)
+    auto xtcell = new xAOD::CaloCell();
+
+    xtcell->setEta( xtdescriptor->eta() );
+    xtcell->setPhi( xtdescriptor->phi() );
+    xtcell->setDeltaEta( xtdescriptor->deltaEta() );
+    xtcell->setDeltaPhi( xtdescriptor->deltaPhi() );
+    xtcell->setE( xtdescriptor->e() ); // Estimated energy from OF/COF
+    xtcell->setTau( xtdescriptor->tau() ); // Estimated time from OF/COF
+    xtcell->setEt( xtdescriptor->e() / std::cosh( xtdescriptor->eta() ) );
+    // xtcell->setDescriptor( descriptor );
+    xtcell->setDescriptor( xtdescriptor );
+    xtContainer->push_back( xtcell ); //add CaloCell to XTcontainer  
 
   }
 

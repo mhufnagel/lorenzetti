@@ -21,8 +21,9 @@ class OptimalFilter : public Gaugi::AlgTool
   private:
 
     /*! optimal filter weights */
-    std::vector<float> m_ofweightsEnergy;
-    std::vector<float> m_ofweightsTime;
+    // std::vector<float> m_ofweightsEnergy;
+    // std::vector<float> m_ofweightsTime;
+    // std::vector<float> m_noiseStd=nullptr;
 };
 
 #endif

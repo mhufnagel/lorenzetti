@@ -105,7 +105,7 @@ def getLArBarrelCfg():
                           Noise           = 90*MeV, # electronic noise
                           Samples         = 5, # how many samples
                           OFWeightsEnergy = [-0.0000853580,    0.265132,    0.594162,     0.389505,     0.124353], # optimal filter parameters for energy estimation
-                          OFWeightsTime   = [-0.0000853580,   -12.870312690734863, -27.39136505126953, 8.075883865356445, 13.768877029418945] # EMB1 ATLAS sample to test (fake first number to add to 5) 
+                          OFWeightsTime = [ -0.2267359,  -18.89796581,   1.19806999,  10.93588074,   5.07778683]#[-0.0000853580,   -12.870312690734863, -27.39136505126953, 8.075883865356445, 13.768877029418945] # EMB1 ATLAS sample to test (fake first number to add to 5) 
                         )
   # Configure the electronic frontend and the detector parameters
   emb1_det = Calorimeter( emb1_sv, -21, 3, -2, # sensitive volume, bunch start, bunch end, sampling start,
@@ -116,7 +116,7 @@ def getLArBarrelCfg():
                           Noise           = 26*MeV, # electronic noise
                           Samples         = 5, # how many samples
                           OFWeightsEnergy = [-0.0000853580,    0.265132,    0.594162,     0.389505,     0.124353], # optimal filter parameters for energy estimation
-                          OFWeightsTime   = [-0.0000853580,   -12.870312690734863, -27.39136505126953, 8.075883865356445, 13.768877029418945] # EMB1 ATLAS sample to test (fake first number to add to 5) 
+                          OFWeightsTime = [ -0.2267359,  -18.89796581,   1.19806999,  10.93588074,   5.07778683]#[-0.0000853580,   -12.870312690734863, -27.39136505126953, 8.075883865356445, 13.768877029418945] # EMB1 ATLAS sample to test (fake first number to add to 5) 
                         )
   # Configure the electronic frontend and the detector parameters
   emb2_det = Calorimeter( emb2_sv, -21, 3, -2, # sensitive volume, bunch start, bunch end, sampling start,
@@ -127,7 +127,7 @@ def getLArBarrelCfg():
                           Noise           = 60*MeV, # electronic noise
                           Samples         = 5, # how many samples
                           OFWeightsEnergy = [-0.0000853580,    0.265132,    0.594162,     0.389505,     0.124353], # optimal filter parameters for energy estimation
-                          OFWeightsTime   = [-0.0000853580,   -12.870312690734863, -27.39136505126953, 8.075883865356445, 13.768877029418945] # EMB1 ATLAS sample to test (fake first number to add to 5) 
+                          OFWeightsTime = [ -0.2267359,  -18.89796581,   1.19806999,  10.93588074,   5.07778683]#[-0.0000853580,   -12.870312690734863, -27.39136505126953, 8.075883865356445, 13.768877029418945] # EMB1 ATLAS sample to test (fake first number to add to 5) 
                         )
   # Configure the electronic frontend and the detector parameters
   emb3_det = Calorimeter( emb3_sv, -21, 3, -2, # sensitive volume, bunch start, bunch end, sampling start,
@@ -138,7 +138,7 @@ def getLArBarrelCfg():
                           Noise           = 40*MeV, # electronic noise
                           Samples         = 5, # how many samples
                           OFWeightsEnergy = [-0.0000853580,    0.265132,    0.594162,     0.389505,     0.124353], # optimal filter parameters for energy estimation
-                          OFWeightsTime   = [-0.0000853580,   -12.870312690734863, -27.39136505126953, 8.075883865356445, 13.768877029418945] # EMB1 ATLAS sample to test (fake first number to add to 5) 
+                          OFWeightsTime = [ -0.2267359,  -18.89796581,   1.19806999,  10.93588074,   5.07778683]#[-0.0000853580,   -12.870312690734863, -27.39136505126953, 8.075883865356445, 13.768877029418945] # EMB1 ATLAS sample to test (fake first number to add to 5) 
                         )
 
 

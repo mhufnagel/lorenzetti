@@ -217,8 +217,8 @@ StatusCode RootStreamESDReader::deserialize( int evt, EventContext &ctx ) const
         xtlink++;
       }
 
-      SG::WriteHandle<xAOD::CaloCellContainer> container(m_xtcellsKey, ctx);
-      container.record( std::unique_ptr<xAOD::CaloCellContainer>(new xAOD::CaloCellContainer()));
+      SG::WriteHandle<xAOD::CaloCellContainer> xtcontainer(m_xtcellsKey, ctx);
+      xtcontainer.record( std::unique_ptr<xAOD::CaloCellContainer>(new xAOD::CaloCellContainer()));
 
       for( auto &cell_t : *collection_xtcells )
       {
@@ -226,7 +226,7 @@ StatusCode RootStreamESDReader::deserialize( int evt, EventContext &ctx ) const
         xAOD::CaloCellConverter cnv;
         cnv.convert(cell_t, cell); // alloc memory
         cell->setDescriptor( xtdescriptor_links[cell_t.descriptor_link] );
-        container->push_back(cell);
+        xtcontainer->push_back(cell);
       }
     } // end-if doCrosstalk
   }
