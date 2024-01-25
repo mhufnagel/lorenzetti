@@ -157,9 +157,12 @@ namespace xAOD{
 
       /*! id sample */
       CaloSampling m_sampling;
+
+      /* MOVE TO CALIBRATION */
       float m_noise;
       std::vector<float> m_ofca;
       std::vector<float> m_ofcb;
+      
       /*! id layer */
       Detector m_detector;
 
