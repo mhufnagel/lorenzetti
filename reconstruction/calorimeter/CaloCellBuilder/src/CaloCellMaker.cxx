@@ -267,12 +267,12 @@ StatusCode CaloCellMaker::post_execute( EventContext &ctx ) const
 
       // TOF calibration happens here, before digitalization|PulseGenerator
       // obs.: only at LAR, for now.
-      if ( (descriptor->sampling() == CaloSampling::PSB) || (descriptor->sampling() == CaloSampling::EMB1) || (descriptor->sampling() == CaloSampling::EMB2) || (descriptor->sampling() == CaloSampling::EMB3)){
-        if( m_calibration->execute(ctx, descriptor).isFailure() ){
-          MSG_ERROR( "It's not possible to execute Calibration Tool.");
-          return StatusCode::FAILURE;
-        }
-      }
+      // if ( (descriptor->sampling() == CaloSampling::PSB) || (descriptor->sampling() == CaloSampling::EMB1) || (descriptor->sampling() == CaloSampling::EMB2) || (descriptor->sampling() == CaloSampling::EMB3)){
+      //   if( m_calibration->execute(ctx, descriptor).isFailure() ){
+      //     MSG_ERROR( "It's not possible to execute Calibration Tool.");
+      //     return StatusCode::FAILURE;
+      //   }
+      // }
 
 
       if( m_pulseGenerator->execute(ctx, descriptor).isFailure() ){

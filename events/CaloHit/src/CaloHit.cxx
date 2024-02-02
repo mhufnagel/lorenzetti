@@ -61,7 +61,8 @@ void CaloHit::fill( const G4Step* step )
   float edep = (float)step->GetTotalEnergyDeposit();
   G4StepPoint* point = step->GetPreStepPoint();
   // Get the particle time
-  float t = (float)point->GetGlobalTime() / ns;
+  float t           = (float)point->GetGlobalTime() / ns;
+  float t_corrected = (point->GetGlobalTime() - (point->GetPosition().mag()/c_light) )/ ns;
 
   // Get the bin index into the time vector
   int samp = find(t);
@@ -71,11 +72,24 @@ void CaloHit::fill( const G4Step* step )
     // cout << "sampling: "<< m_sampling << ", BCID: "<< bcid << ", samp: " << samp << ", HIT: " << m_hash << ", t: " << t << ", edep: "<< edep << ", m_edep[bcid]="<< m_edep[bcid] << ", m_tof[bcid]="<< m_tof[bcid] << "\n"; // 
 
     m_edep[bcid]  +=  (edep/MeV);
-    m_tof[bcid]   =   t; // the TOF comes from the last hit
+
+    if ((m_edep[bcid] > 0.) && (!m_firstHit)){
+      m_tof[bcid]   = t_corrected;   // the TOF comes from the first hit
+      m_firstHit    = true;
+
+
+    }
+    else if ((m_edep[bcid] > 0.) && (t_corrected < m_tof[bcid]) ){
+      m_tof[bcid]   = t_corrected;   // the TOF comes from the first hit (in time)
+    }
+    // if (m_sampling==3){
+    //   cout <<"BCID: "<< bcid <<", sampling: "<< m_sampling << ", HIT: " << m_hash << ", t_global: " << t << ", edep: "<< edep << ", m_edep[bcid]="<< m_edep[bcid] << ", t_corrected="<< m_tof[bcid] << ", current_Hit_t="<< t_corrected <<"\n"; // 
+    // }
 
   }
 }
 
+// DEPRECATED!!!
 void CaloHit::fill( const G4Step* step , float sampNoiseStd)
 {
   // Get total energy deposit

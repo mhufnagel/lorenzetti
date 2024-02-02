@@ -66,7 +66,7 @@ class CaloCellBuilder( Logger ):
                               DeformationMean = 0.0, 
                               DeformationStd  = 0.0,
                               NoiseMean       = 0.0,
-                              NoiseStd        = samp.Noise,
+                              NoiseStd        = 0.0,#samp.Noise,
                               StartSamplingBC = samp.StartSamplingBC )
 
       of= OptimalFilter("OptimalFilter",

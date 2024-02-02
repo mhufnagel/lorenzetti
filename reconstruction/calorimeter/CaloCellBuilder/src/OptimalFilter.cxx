@@ -42,7 +42,8 @@ StatusCode OptimalFilter::execute( SG::EventContext &/*ctx*/, Gaugi::EDM *edm ) 
   auto *cell = static_cast<xAOD::CaloDetDescriptor*>(edm);
   auto pulse = cell->pulse();
   float energy=0.0;
-  float tau=0.0, EneTau=0.0;
+  float tau=0.0;
+  double EneTau=0.0;
   auto ofweightsEnergy=cell->OFCa();
   auto ofweightsTime=cell->OFCb();
   float noise=cell->noise();

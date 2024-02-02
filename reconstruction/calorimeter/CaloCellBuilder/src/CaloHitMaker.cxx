@@ -172,8 +172,8 @@ StatusCode CaloHitMaker::execute( EventContext &ctx , const G4Step *step ) const
   xAOD::CaloHit *hit=nullptr;
 
   if(collection->retrieve(hash(bin), hit)){
-    // hit->fill( step );
-    hit->fill( step , 1*m_noiseStd); // hit with tof selection sensible by 1*sigma of sampling noise.
+    hit->fill( step ); // hit with tof from first hit (independent from energy and noise level)
+    // hit->fill( step , 1*m_noiseStd); // hit with tof selection sensible by 1*sigma of sampling noise.
   }else{
     MSG_FATAL( "Its not possible to retrieve the hit. Bin ("<< bin << ") not exist");
   }

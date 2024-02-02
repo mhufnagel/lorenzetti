@@ -92,12 +92,6 @@ namespace xAOD{
 
       void tof( int bc_id, float t ){ //setter
         m_tof[bc_id] = t;
-        // if (m_tof[bc_id] == float(0)){
-        //   m_tof[bc_id] = t;
-        // }
-        // else{
-        //   m_tof[bc_id] = (m_tof[bc_id] + t)/2; //simple moving average with w=2
-        // }
       }
 
 

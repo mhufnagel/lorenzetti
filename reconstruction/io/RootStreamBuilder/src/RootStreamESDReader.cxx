@@ -92,7 +92,7 @@ StatusCode RootStreamESDReader::post_execute( EventContext &/*ctx*/ ) const
 
 //!=====================================================================
 
-StatusCode RootStreamESDReader::fillHistograms( EventContext &ctx ) const
+StatusCode RootStreamESDReader::fillHistograms( EventContext &/*ctx*/ ) const
 {
   return StatusCode::SUCCESS;
 }

@@ -164,7 +164,7 @@ StatusCode RootStreamNTUPLEMaker::post_execute( EventContext &/*ctx*/ ) const
 
 //!=====================================================================
 
-StatusCode RootStreamNTUPLEMaker::fillHistograms( EventContext &ctx ) const
+StatusCode RootStreamNTUPLEMaker::fillHistograms( EventContext &/*ctx*/ ) const
 {
   return StatusCode::SUCCESS;
 }
